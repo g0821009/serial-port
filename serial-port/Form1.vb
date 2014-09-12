@@ -1,5 +1,5 @@
-﻿Imports System
-Imports System.IO.Ports
+﻿' 2014.09.10.1323 ver1.01 ターミネータに関わらずTABを最後に入力
+' 2014.09.12.1323 ver1.02 ポートリスト一覧が取得できない不具合を修正
 
 Public Class Form1
     Dim weit As String
@@ -60,16 +60,17 @@ Public Class Form1
 
         createListBox2()
 
-        portnames = SerialPort.GetPortNames()
-        Debug.WriteLine(portnames)
+        '        portnames = SerialPort.GetPortNames()
+        '       Debug.WriteLine("port names:")
+        '      Debug.WriteLine(portnames)
 
-        If IsArray(portnames) Then
-            Debug.WriteLine("port name is Nothing")
-        Else
-            For Each portname In portnames
-                ListBox1.Items.Add(portname)
-            Next portname
-        End If
+        'If IsArray(portnames) Then
+        'Debug.WriteLine("port name is Nothing")
+        'Else
+        For Each portname In My.Computer.Ports.SerialPortNames
+            ListBox1.Items.Add(portname)
+        Next portname
+        'End If
 
         settingArray = importSetting()
 
@@ -115,7 +116,7 @@ Public Class Form1
     Private Sub Form1_Closed(ByVal sender As Object, ByVal e As System.EventArgs) Handles MyBase.Closed
         Dim settingLines = String.Empty
         settingLines &= "portname:" & SerialPort1.PortName & System.Environment.NewLine
-        settingLines &= "weit:" & ListBox2.Text
+        settingLines &= "weit:" & Label4.Text
         exportSetting(settingLines)
         Debug.WriteLine("finished")
         If SerialPort1.IsOpen = True Then   'ポートオープン済み
@@ -130,7 +131,7 @@ Public Class Form1
             If SerialPort1.IsOpen = True Then   'ポートオープン済み
                 SerialPort1.Close()              'ポートクローズ
             End If
-            SerialPort1.PortName = ListBox1.Text
+            SerialPort1.PortName = ListBox1.SelectedItem
             Label3.Text = SerialPort1.PortName
             SerialPort1.Open()
             Debug.WriteLine("open " + SerialPort1.PortName)
@@ -144,7 +145,11 @@ Public Class Form1
         received_strings = SerialPort1.ReadLine
         For Each c In received_strings
             Debug.Write(c)
-            SendKeys.SendWait(c)
+            If c = ChrW(Keys.Enter) Then
+                SendKeys.SendWait(ChrW(Keys.Tab))
+            Else
+                SendKeys.SendWait(c)
+            End If
             If c = vbTab Then
                 System.Threading.Thread.Sleep(weit)
             End If
